@@ -75,11 +75,9 @@ def logger(info, model, optimizer, args=None):
 
 def main():
     # Arguments
-    print("check")
     parser = argparse.ArgumentParser(
         description="Inductive Graph-based Matrix Completion"
     )
-    print("check again")
 
     # Store 'args' using the Config class
     # general settings

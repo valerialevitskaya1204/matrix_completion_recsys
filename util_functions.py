@@ -89,7 +89,7 @@ class MyDataset(InMemoryDataset):
             self.links = (links[0][perm], links[1][perm])
             self.labels = labels[perm]
         super(MyDataset, self).__init__(root)
-        self.data, self.slices = torch.load(self.processed_paths[0])
+        self.data, self.slices = torch.load(self.processed_paths[0], weights_only=False)
 
     @property
     def processed_file_names(self):
@@ -108,6 +108,14 @@ class MyDataset(InMemoryDataset):
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
         del data_list
+
+    def __len__(self):
+        return len(self.slices['x']) - 1
+
+    def get(self, idx):
+        return self.data[idx]
+    
+
 
 
 class MyDynamicDataset(Dataset):
@@ -224,9 +232,9 @@ def subgraph_extraction_labeling(ind, Arow, Acol, h=1, sample_ratio=1.0, max_nod
             v_fringe = random.sample(v_fringe, int(sample_ratio*len(v_fringe)))
         if max_nodes_per_hop is not None:
             if max_nodes_per_hop < len(u_fringe):
-                u_fringe = random.sample(u_fringe, max_nodes_per_hop)
+                u_fringe = random.sample(list(u_fringe), max_nodes_per_hop)
             if max_nodes_per_hop < len(v_fringe):
-                v_fringe = random.sample(v_fringe, max_nodes_per_hop)
+                v_fringe = random.sample(list(v_fringe), max_nodes_per_hop)
         if len(u_fringe) == 0 and len(v_fringe) == 0:
             break
         u_nodes = u_nodes + list(u_fringe)

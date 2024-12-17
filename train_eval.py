@@ -9,7 +9,8 @@ import torch.nn.functional as F
 from torch import tensor
 from torch.optim import Adam
 from sklearn.model_selection import StratifiedKFold
-from torch_geometric.data import DataLoader, DenseDataLoader as DenseLoader
+from torch_geometric.data import DenseDataLoader as DenseLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 import pdb
 import matplotlib
@@ -167,8 +168,8 @@ def train(model, optimizer, loader, device, regression=False, ARR=0,
         if ARR != 0:
             for gconv in model.convs:
                 w = torch.matmul(
-                    gconv.att, 
-                    gconv.basis.view(gconv.num_bases, -1)
+                    gconv.comp,
+                    gconv.weight.view(gconv.num_bases, -1)
                 ).view(gconv.num_relations, gconv.in_channels, gconv.out_channels)
                 reg_loss = torch.sum((w[1:, :, :] - w[:-1, :, :])**2)
                 loss += ARR * reg_loss
@@ -319,7 +320,8 @@ def visualize(model, graphs, res_dir, data_name, class_values, num=5, sort_by='p
     cbar = plt.colorbar(sm, cax=cbar_ax, ticks=class_values)
     cbar.ax.tick_params(labelsize=22)
     f.savefig(os.path.join(res_dir, "visualization_{}_{}.pdf".format(data_name, sort_by)), 
-            interpolation='nearest', bbox_inches='tight')
+          bbox_inches='tight')
+
     
     
     

@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.sparse as sp
 import random
 import pdb
-
+import chardet
 # For automatic dataset downloading
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -253,8 +253,13 @@ def load_data(fname, seed=1234, verbose=True):
         movies_file = data_dir + files[1]
 
         movies_headers = ['movie_id', 'title', 'genre']
+
+        with open(movies_file, 'rb') as f:
+            result = chardet.detect(f.read())
+            encoding = result['encoding']
+
         movies_df = pd.read_csv(movies_file, sep=sep, header=None,
-                                names=movies_headers, engine='python')
+                        names=movies_headers, engine='python', encoding=encoding)
 
         # Extracting all genres
         genres = []
