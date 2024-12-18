@@ -4,8 +4,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Linear, Conv1d
 from torch_geometric.nn import GCNConv, RGCNConv, global_sort_pool, global_add_pool
-from torch_geometric.utils import dropout_adj
-from util_functions import *
+from torch_geometric.utils import dropout_adj #, dropout_edge
+
+from util_functions import (
+    SparseRowIndexer,
+    SparseColIndexer,
+    MyDataset,
+    MyDynamicDataset,
+    links2subgraphs,
+    subgraph_extraction_labeling,
+    construct_pyg_graph,
+    PyGGraph_to_nx
+)
 import pdb
 import time
 
