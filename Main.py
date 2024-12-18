@@ -21,6 +21,9 @@ import traceback
 import warnings
 import sys
 
+import wandb
+
+
 
 # used to traceback which code cause warnings, can delete
 def warn_with_traceback(message, category, filename, lineno, file=None, line=None):
@@ -69,8 +72,10 @@ def logger(info, model, optimizer, args=None):
         )
         if model is not None:
             torch.save(model.state_dict(), model_name)
+            wandb.save(model_name)
         if optimizer is not None:
             torch.save(optimizer.state_dict(), optimizer_name)
+            wandb.save(optimizer_name)
 
 
 def main():
@@ -302,6 +307,18 @@ def main():
     config = Config()
     config.set_args(args)
     print(f"CHECK ARGS:{args}")
+
+    wandb.init(project="matrix_completion_recsys", 
+               name="experiment_trial_1", 
+               config={
+                    "epochs": args.epochs,
+                    "batch_size": args.batch_size,
+                    "learning_rate": args.lr,
+                    "dataset": args.data_name,
+                    "adj_dropout": args.adj_dropout,
+                    "num_relations": args.num_relations
+                    })
+    
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
@@ -363,18 +380,27 @@ def main():
     if not os.path.exists(args.res_dir):
         os.makedirs(args.res_dir)
 
-    if not args.keep_old and not args.transfer:
-        # backup current main.py, model.py files
-        copy("Main.py", args.res_dir)
-        copy("util_functions.py", args.res_dir)
-        copy("models.py", args.res_dir)
-        copy("train_eval.py", args.res_dir)
-    # save command line input
-    cmd_input = "python " + " ".join(sys.argv) + "\n"
-    with open(os.path.join(args.res_dir, "cmd_input.txt"), "a") as f:
-        f.write(cmd_input)
-    print("Command line input: " + cmd_input + " is saved.")
-
+    # Log additional learning parameters to log.txt
+    params_log = os.path.join(args.res_dir, "cmd_input.txt")
+    with open(params_log, "a") as f:
+        f.write("\nExperiment Parameters:\n")
+        f.write("Data Name: {}\n".format(args.data_name))
+        f.write("Epochs: {}\n".format(args.epochs))
+        f.write("Batch Size: {}\n".format(args.batch_size))
+        f.write("Learning Rate: {}\n".format(args.lr))
+        f.write("LR Decay Step Size: {}\n".format(args.lr_decay_step_size))
+        f.write("LR Decay Factor: {}\n".format(args.lr_decay_factor))
+        f.write("Hops: {}\n".format(args.hop))
+        f.write("Sample Ratio: {}\n".format(args.sample_ratio))
+        f.write("Adjacency Dropout: {}\n".format(args.adj_dropout))
+        f.write("Force Undirected: {}\n".format(args.force_undirected))
+        f.write("Dynamic Train: {}\n".format(args.dynamic_train))
+        f.write("Dynamic Test: {}\n".format(args.dynamic_test))
+        f.write("Dynamic Val: {}\n".format(args.dynamic_val))
+        f.write("Standard Rating: {}\n".format(args.standard_rating))
+        f.write("Seed: {}\n".format(args.seed))
+        f.write("Save Interval: {}\n".format(args.save_interval))
+    
     if args.data_name in ["ml_1m", "ml_10m", "ml_25m"]:
         if args.use_features:
             datasplit_path = (
@@ -656,6 +682,10 @@ def main():
             class_values,
             sort_by="prediction",
         )
+        # log_file = os.path.join(args.res_dir, "log.txt")
+        # visualize_losses(log_file, 
+        #                  args.res_dir, 
+        #                  args.data_name)
         if args.transfer:
             rmse = test_once(test_graphs, model, args.batch_size, logger)
             print("Transfer learning rmse is: {:.6f}".format(rmse))

@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Linear, Conv1d
 from torch_geometric.nn import GCNConv, RGCNConv, global_sort_pool, global_add_pool
-from torch_geometric.utils import dropout_edge
+from torch_geometric.utils import dropout_adj
 from util_functions import *
 import pdb
 import time
@@ -37,7 +37,7 @@ class GNN(torch.nn.Module):
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
         if self.adj_dropout > 0:
-            edge_index, edge_type = dropout_edge(
+            edge_index, edge_type = dropout_adj(
                 edge_index, edge_type, p=self.adj_dropout, 
                 force_undirected=self.force_undirected, num_nodes=len(x), 
                 training=self.training

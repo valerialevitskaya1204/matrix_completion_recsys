@@ -17,6 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from util_functions import PyGGraph_to_nx
+import wandb
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -39,17 +40,23 @@ def train_multiple_epochs(train_dataset,
     rmses = []
 
     if train_dataset.__class__.__name__ == 'MyDynamicDataset':
-        num_workers = mp.cpu_count()
+        num_workers = 2
     else:
         num_workers = 2
-    train_loader = DataLoader(train_dataset, batch_size, shuffle=True, 
-                              num_workers=num_workers)
+    train_loader = DataLoader(train_dataset, 
+                              batch_size, 
+                              shuffle=True, 
+                              num_workers=num_workers,
+                              pin_memory=False)
     if test_dataset.__class__.__name__ == 'MyDynamicDataset':
         num_workers = mp.cpu_count()
     else:
         num_workers = 2
-    test_loader = DataLoader(test_dataset, batch_size, shuffle=False, 
-                             num_workers=num_workers)
+    test_loader = DataLoader(test_dataset, 
+                             batch_size, 
+                             shuffle=False, 
+                             num_workers=num_workers,
+                             pin_memory=False)
 
     model.to(device).reset_parameters()
     optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -177,7 +184,15 @@ def train(model, optimizer, loader, device, regression=False, ARR=0,
         total_loss += loss.item() * num_graphs(data)
         optimizer.step()
         torch.cuda.empty_cache()
-    return total_loss / len(loader.dataset)
+
+    epoch_loss = total_loss / len(loader.dataset)
+
+    # Log the loss to wandb
+    if epoch is not None:
+        wandb.log({"Train Loss": epoch_loss, "Epoch": epoch})
+
+    return epoch_loss
+
 
 
 def eval_loss(model, loader, device, regression=False, show_progress=False):
@@ -322,6 +337,49 @@ def visualize(model, graphs, res_dir, data_name, class_values, num=5, sort_by='p
     f.savefig(os.path.join(res_dir, "visualization_{}_{}.pdf".format(data_name, sort_by)), 
           bbox_inches='tight')
 
-    
-    
-    
+
+# def visualize_losses_multiple_trials(log_file, res_dir, data_name):
+#     trials = []  
+#     current_epochs, current_losses, current_rmses = [], [], []
+
+#     if os.path.exists(log_file):
+#         with open(log_file, "r") as f:
+#             for line in f:
+#                 if line.startswith("Epoch ") and "train loss" in line and "ensemble" not in line:
+#                     parts = line.strip().split(", ")
+#                     try:
+#                         epoch = int(parts[0].split(" ")[1])
+#                         train_loss = float(parts[1].split(" ")[2])
+#                         test_rmse = float(parts[2].split(" ")[2])
+
+#                         if epoch == 1 and current_epochs:
+#                             trials.append((current_epochs, current_losses, current_rmses))
+#                             current_epochs, current_losses, current_rmses = [], [], []
+
+#                         current_epochs.append(epoch)
+#                         current_losses.append(train_loss)
+#                         current_rmses.append(test_rmse)
+#                     except (IndexError, ValueError):
+#                         print(f"Skipping malformed line: {line}")
+
+#             if current_epochs:
+#                 trials.append((current_epochs, current_losses, current_rmses))
+
+#         for i, (epochs, train_losses, test_rmses) in enumerate(trials):
+#             plt.figure(figsize=(10, 6))
+#             plt.plot(epochs, train_losses, label="Train Loss", linestyle="-", marker="o")
+#             plt.plot(epochs, test_rmses, label="Test RMSE", linestyle="--", marker="x")
+#             plt.xlabel("Epochs")
+#             plt.ylabel("Value")
+#             plt.title(f"Training Loss and Test RMSE - Trial {i+1}")
+#             plt.legend()
+#             plt.grid(True)
+#             plt.tight_layout()
+
+#             save_path = os.path.join(res_dir, f"losses_{data_name}_trial_{i+1}.pdf")
+#             plt.savefig(save_path)
+#             plt.close()
+#             print(f"Trial {i+1} visualization saved to {save_path}")
+#     else:
+#         print(f"Log file {log_file} does not exist.")
+

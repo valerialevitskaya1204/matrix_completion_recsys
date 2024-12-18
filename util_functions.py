@@ -109,12 +109,6 @@ class MyDataset(InMemoryDataset):
         torch.save((data, slices), self.processed_paths[0])
         del data_list
 
-    def __len__(self):
-        return len(self.slices['x']) - 1
-
-    def get(self, idx):
-        return self.data[idx]
-    
 
 
 
@@ -140,7 +134,10 @@ class MyDynamicDataset(Dataset):
             self.links = (links[0][perm], links[1][perm])
             self.labels = labels[perm]
 
-    def __len__(self):
+    # def __len__(self):
+    #     return len(self.links[0])
+
+    def len(self):
         return len(self.links[0])
 
     def get(self, idx):

@@ -89,3 +89,4 @@ webencodings==0.5.1
 yarg==0.1.9
 yarl==1.18.3
 chardet==5.2.0
+wandb==0.19.1
