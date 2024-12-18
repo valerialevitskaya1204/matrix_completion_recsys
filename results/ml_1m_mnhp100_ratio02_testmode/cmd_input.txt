@@ -1,0 +1,36 @@
+
+Experiment Parameters:
+Data Name: ml_1m
+Epochs: 40
+Batch Size: 50
+Learning Rate: 0.001
+LR Decay Step Size: 20
+LR Decay Factor: 0.1
+Hops: 1
+Sample Ratio: 1.0
+Adjacency Dropout: 0.0
+Force Undirected: False
+Dynamic Train: True
+Dynamic Test: False
+Dynamic Val: False
+Standard Rating: False
+Seed: 1
+Save Interval: 5
+
+Experiment Parameters:
+Data Name: ml_1m
+Epochs: 40
+Batch Size: 50
+Learning Rate: 0.001
+LR Decay Step Size: 20
+LR Decay Factor: 0.1
+Hops: 1
+Sample Ratio: 1.0
+Adjacency Dropout: 0.0
+Force Undirected: False
+Dynamic Train: True
+Dynamic Test: False
+Dynamic Val: False
+Standard Rating: False
+Seed: 1
+Save Interval: 5
