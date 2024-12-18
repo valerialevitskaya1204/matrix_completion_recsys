@@ -56,7 +56,8 @@ The results will be saved in "results/ml\_100k\_mnph200\_testmode/". The process
 
 To train on MovieLens-1M, type:
     
-    python Main.py --data-name ml_1m --save-appendix _mnhp100 --data-appendix _mnph100 --max-nodes-per-hop 100 --testing --epochs 40 --save-interval 5 --adj-dropout 0 --lr-decay-step-size 20 --ensemble --dynamic-train
+    python Main.py --data-name ml_1m --save-appendix _mnhp100 --data-appendix _mnph100 --max-nodes-per-hop 50 --testing --epochs 40 --save-interval 5 --adj-dropout 0 --lr-decay-step-size 20 --ensemble --debug --batch-size 25
+
 
 ### Sparse rating matrix
 
