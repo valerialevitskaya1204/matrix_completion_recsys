@@ -14,6 +14,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from preprocessing import create_trainvaltest_split, load_data_monti, load_official_trainvaltest_split
 from train_eval import train_multiple_epochs, test_once, visualize 
 from models import DGCNN_RS, IGMC
+from util_functions import MyDataset, MyDynamicDataset
 
 import traceback
 import warnings
