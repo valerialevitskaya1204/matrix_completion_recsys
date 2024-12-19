@@ -31,7 +31,8 @@ def train_multiple_epochs(train_dataset,
                           lr_decay_factor,
                           lr_decay_step_size,
                           weight_decay,
-                          ARR=0, 
+                          ARR=0,
+                          regularizer=None, 
                           test_freq=1, 
                           logger=None, 
                           continue_from=None, 
@@ -154,7 +155,7 @@ def num_graphs(data):
         return data.x.size(0)
 
 
-def train(model, optimizer, loader, device, regression=False, ARR=0, 
+def train(model, optimizer, loader, device, regression=False, ARR=0, regularizer='modern',
           show_progress=False, epoch=None):
     model.train()
     total_loss = 0
@@ -174,16 +175,53 @@ def train(model, optimizer, loader, device, regression=False, ARR=0,
             pbar.set_description('Epoch {}, batch loss: {}'.format(epoch, loss.item()))
         if ARR != 0:
             for gconv in model.convs:
-                w = torch.matmul(
-                    gconv.comp,
-                    gconv.weight.view(gconv.num_bases, -1)
-                ).view(gconv.num_relations, gconv.in_channels, gconv.out_channels)
-                reg_loss = torch.sum((w[1:, :, :] - w[:-1, :, :])**2)
+                if regularizer == 'frobenius':
+                    w = torch.matmul(
+                        gconv.comp,
+                        gconv.weight.view(gconv.num_bases, -1)
+                    ).view(gconv.num_relations, gconv.in_channels, gconv.out_channels)
+                    reg_loss = torch.sum((w[1:, :, :] - w[:-1, :, :])**2)
+                    #1 reg_loss = torch.sum(torch.norm(gconv.weight, p='fro')) torch
+
+
+                elif regularizer == 'L2':
+                    # L2 norm regularization
+                    reg_loss = torch.sum(torch.norm(gconv.weight, p=2))
+                elif regularizer == 'L1':
+                    # L1 norm regularization
+                    reg_loss = torch.sum(torch.norm(gconv.weight, p=1))
+                elif regularizer == 'modern':
+                    w = torch.einsum('rb, bio -> rio', gconv.comp, gconv.weight) 
+                    reg_loss = torch.norm(gconv.weight, p='fro') 
+
+
+                else:
+                    raise ValueError(f"Unknown regularizer: {regularizer}")
+                
                 loss += ARR * reg_loss
+
+                
         loss.backward()
         total_loss += loss.item() * num_graphs(data)
         optimizer.step()
         torch.cuda.empty_cache()
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     epoch_loss = total_loss / len(loader.dataset)
 

@@ -302,10 +302,17 @@ def main():
     """
         Set seeds, prepare for transfer learning (if --transfer)
     """
+    parser.add_argument('--regularizer', type=str,
+                    choices=['frobenius', 'L2', 'L1', 'modern'],
+                    help='Regularizer type: frobenius (default), L2, or L1, or TVR')
+
+    
     args = parser.parse_args()
     config = Config()
     config.set_args(args)
     print(f"CHECK ARGS:{args}")
+
+    
 
     wandb.init(project="matrix_completion_recsys", 
                name="experiment_trial_1", 
@@ -399,6 +406,7 @@ def main():
         f.write("Standard Rating: {}\n".format(args.standard_rating))
         f.write("Seed: {}\n".format(args.seed))
         f.write("Save Interval: {}\n".format(args.save_interval))
+        f.write("Save Interval: {}\n".format(args.regularizer))
     
     if args.data_name in ["ml_1m", "ml_10m", "ml_25m"]:
         if args.use_features:
@@ -665,6 +673,7 @@ def main():
             lr_decay_step_size=args.lr_decay_step_size,
             weight_decay=0,
             ARR=args.ARR,
+            regularizer=args.regularizer,
             test_freq=args.test_freq,
             logger=logger,
             continue_from=args.continue_from,
