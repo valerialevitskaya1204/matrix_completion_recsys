@@ -6,3 +6,6 @@ software/
 data/
 plot_figure.py
 __pycache__/
+myenv/
+raw_data/
+wandb/

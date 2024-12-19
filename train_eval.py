@@ -81,7 +81,7 @@ def train_multiple_epochs(train_dataset,
     else:
         pbar = range(start_epoch, epochs + start_epoch)
     for epoch in pbar:
-        train_loss = train(model, optimizer, train_loader, device, regression=True, ARR=ARR, 
+        train_loss = train(model, optimizer, train_loader, device, regression=False, ARR=ARR, 
                            show_progress=batch_pbar, epoch=epoch)
         if epoch % test_freq == 0:
             rmses.append(eval_rmse(model, test_loader, device, show_progress=batch_pbar))
@@ -167,8 +167,10 @@ def train(model, optimizer, loader, device, regression=False, ARR=0,
         data = data.to(device)
         out = model(data)
         if regression:
+            print("REGRESSION")
             loss = F.mse_loss(out, data.y.view(-1))
         else:
+            data.y = data.y.long()
             loss = F.nll_loss(out, data.y.view(-1))
         if show_progress:
             pbar.set_description('Epoch {}, batch loss: {}'.format(epoch, loss.item()))
