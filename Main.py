@@ -100,6 +100,10 @@ def main():
         help="if set, skip the training and directly perform the \
                         transfer/ensemble/visualization",
     )
+    
+    parser.add_argument(
+        "--loss-fn", default='mse', choices=['mse', 'nll', 'cross_entropy', 'mae'], help='Функция потерь для обучения модели (mse или nll)')
+    
     parser.add_argument(
         "--debug",
         action="store_true",
@@ -666,6 +670,7 @@ def main():
             args.lr,
             lr_decay_factor=args.lr_decay_factor,
             lr_decay_step_size=args.lr_decay_step_size,
+            loss_fn = args.loss_fn,
             weight_decay=0,
             ARR=args.ARR,
             test_freq=args.test_freq,

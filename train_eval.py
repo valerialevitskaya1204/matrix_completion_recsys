@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 from torch import tensor
 from torch.optim import Adam
 from sklearn.model_selection import StratifiedKFold
@@ -31,6 +32,7 @@ def train_multiple_epochs(train_dataset,
                           lr_decay_factor,
                           lr_decay_step_size,
                           weight_decay,
+                          loss_fn="mse",
                           ARR=0, 
                           test_freq=1, 
                           logger=None, 
@@ -81,7 +83,7 @@ def train_multiple_epochs(train_dataset,
     else:
         pbar = range(start_epoch, epochs + start_epoch)
     for epoch in pbar:
-        train_loss = train(model, optimizer, train_loader, device, regression=True, ARR=ARR, 
+        train_loss = train(model, optimizer, train_loader, device, loss_fn, ARR=ARR, 
                            show_progress=batch_pbar, epoch=epoch)
         if epoch % test_freq == 0:
             rmses.append(eval_rmse(model, test_loader, device, show_progress=batch_pbar))
@@ -154,7 +156,7 @@ def num_graphs(data):
         return data.x.size(0)
 
 
-def train(model, optimizer, loader, device, regression=False, ARR=0, 
+def train(model, optimizer, loader, device, loss_fn="mse", ARR=0, 
           show_progress=False, epoch=None):
     model.train()
     total_loss = 0
@@ -166,12 +168,21 @@ def train(model, optimizer, loader, device, regression=False, ARR=0,
         optimizer.zero_grad()
         data = data.to(device)
         out = model(data)
-        if regression:
+        if loss_fn == "mse":
             # print("REGRESSION")
             loss = F.mse_loss(out, data.y.view(-1))
-        else:
+        elif loss_fn == "nll":
             data.y = data.y.long()
             loss = F.nll_loss(out, data.y.view(-1))
+        elif loss_fn == "cross_entropy":
+            loss = F.cross_entropy(out, data.y.view(-1))
+        elif loss_fn == "mae":
+            loss_fn_obj = nn.L1Loss()
+            loss = loss_fn_obj(out, data.y.view(-1))
+        else:
+            raise NotImplementedError(
+                f"Функция потерь '{loss_fn}' не реализована. Доступные функции: 'mse', 'nll', 'cross_entropy'."
+            ) 
         if show_progress:
             pbar.set_description('Epoch {}, batch loss: {}'.format(epoch, loss.item()))
         if ARR != 0:
