@@ -11,9 +11,13 @@ import random
 import argparse
 from shutil import copy, rmtree, copytree
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from preprocessing import create_trainvaltest_split, load_data_monti, load_official_trainvaltest_split
-from train_eval import train_multiple_epochs, test_once, visualize 
-from models import DGCNN_RS, IGMC
+from preprocessing import (
+    create_trainvaltest_split,
+    load_data_monti,
+    load_official_trainvaltest_split,
+)
+from train_eval import train_multiple_epochs, test_once, visualize
+from utils.models import DGCNN_RS, IGMC
 from util_functions import MyDataset, MyDynamicDataset
 
 import traceback
@@ -21,7 +25,6 @@ import warnings
 import sys
 
 import wandb
-
 
 
 # used to traceback which code cause warnings, can delete
@@ -100,10 +103,14 @@ def main():
         help="if set, skip the training and directly perform the \
                         transfer/ensemble/visualization",
     )
-    
+
     parser.add_argument(
-        "--loss-fn", default='mse', choices=['mse', 'nll', 'cross_entropy', 'mae'], help='Функция потерь для обучения модели (mse или nll)')
-    
+        "--loss-fn",
+        default="mse",
+        choices=["mse", "nll", "cross_entropy", "mae"],
+        help="Функция потерь для обучения модели (mse или nll)",
+    )
+
     parser.add_argument(
         "--debug",
         action="store_true",
@@ -311,17 +318,19 @@ def main():
     config.set_args(args)
     print(f"CHECK ARGS:{args}")
 
-    wandb.init(project="matrix_completion_recsys", 
-               name="experiment_trial_1", 
-               config={
-                    "epochs": args.epochs,
-                    "batch_size": args.batch_size,
-                    "learning_rate": args.lr,
-                    "dataset": args.data_name,
-                    "adj_dropout": args.adj_dropout,
-                    "num_relations": args.num_relations
-                    })
-    
+    wandb.init(
+        project="matrix_completion_recsys",
+        name="experiment_trial_1",
+        config={
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.lr,
+            "dataset": args.data_name,
+            "adj_dropout": args.adj_dropout,
+            "num_relations": args.num_relations,
+        },
+    )
+
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
@@ -406,7 +415,7 @@ def main():
         f.write("Standard Rating: {}\n".format(args.standard_rating))
         f.write("Seed: {}\n".format(args.seed))
         f.write("Save Interval: {}\n".format(args.save_interval))
-    
+
     if args.data_name in ["ml_1m", "ml_10m", "ml_25m"]:
         if args.use_features:
             datasplit_path = (
@@ -670,7 +679,7 @@ def main():
             args.lr,
             lr_decay_factor=args.lr_decay_factor,
             lr_decay_step_size=args.lr_decay_step_size,
-            loss_fn = args.loss_fn,
+            loss_fn=args.loss_fn,
             weight_decay=0,
             ARR=args.ARR,
             test_freq=args.test_freq,
@@ -690,8 +699,8 @@ def main():
             sort_by="prediction",
         )
         # log_file = os.path.join(args.res_dir, "log.txt")
-        # visualize_losses(log_file, 
-        #                  args.res_dir, 
+        # visualize_losses(log_file,
+        #                  args.res_dir,
         #                  args.data_name)
         if args.transfer:
             rmse = test_once(test_graphs, model, args.batch_size, logger)
