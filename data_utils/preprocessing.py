@@ -8,7 +8,7 @@ import os
 import h5py
 import pandas as pd
 import pdb
-from utils import load_data, map_data, download_dataset
+from .utils import load_data, map_data, download_dataset
 
 
 def normalize_features(feat):

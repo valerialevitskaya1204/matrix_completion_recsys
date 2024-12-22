@@ -11,14 +11,14 @@ import random
 import argparse
 from shutil import copy, rmtree, copytree
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from preprocessing import (
+from data_utils.preprocessing import (
     create_trainvaltest_split,
     load_data_monti,
     load_official_trainvaltest_split,
 )
-from train_eval import train_multiple_epochs, test_once, visualize
-from utils.models import DGCNN_RS, IGMC
-from util_functions import MyDataset, MyDynamicDataset
+from scripts.train_eval import train_multiple_epochs, test_once, visualize
+from scripts.models import DGCNN_RS, IGMC
+from scripts.util_functions import MyDataset, MyDynamicDataset
 
 import traceback
 import warnings
